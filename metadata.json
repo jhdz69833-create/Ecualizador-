@@ -1,0 +1,6 @@
+{
+  "name": "WavePulse EQ - Ecualizador para YouTube Music",
+  "description": "Ecualizador gráfico minimalista de 10 bandas con efecto delay, visualización en tiempo real de ondas, perfiles personalizados, reproductor para YouTube Music y Game Booster asistido por Gemini AI.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

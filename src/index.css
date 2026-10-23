@@ -1,0 +1,56 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    @apply bg-zinc-950 text-zinc-100 antialiased;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+}
+
+/* Vertical slider custom styling for audio equalizer */
+.eq-vertical-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  background: #18181b;
+  border-radius: 9999px;
+  outline: none;
+  transition: all 0.15s ease-in-out;
+}
+
+.eq-vertical-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #22d3ee;
+  border: 2px solid #09090b;
+  box-shadow: 0 0 10px rgba(34, 211, 238, 0.6);
+  cursor: pointer;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.eq-vertical-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+  box-shadow: 0 0 15px rgba(34, 211, 238, 0.9);
+}
+
+.eq-vertical-slider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #22d3ee;
+  border: 2px solid #09090b;
+  box-shadow: 0 0 10px rgba(34, 211, 238, 0.6);
+  cursor: pointer;
+}
+
+/* Tactical Orange Thumb when Game Booster is active */
+.accent-orange-500.eq-vertical-slider::-webkit-slider-thumb {
+  background: #f97316;
+  box-shadow: 0 0 12px rgba(249, 115, 22, 0.8);
+}
+.accent-orange-400.eq-vertical-slider::-webkit-slider-thumb {
+  background: #fb923c;
+  box-shadow: 0 0 10px rgba(251, 146, 60, 0.7);
+}

@@ -1,0 +1,117 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default deny all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidUserProfile(data, userId) {
+      return data.keys().hasAll(['id', 'email', 'createdAt']) &&
+        data.keys().hasOnly(['id', 'email', 'displayName', 'photoURL', 'createdAt', 'updatedAt']) &&
+        data.id == userId &&
+        data.id == request.auth.uid &&
+        data.email is string && data.email.size() <= 256 &&
+        (!('displayName' in data) || (data.displayName is string && data.displayName.size() <= 128)) &&
+        (!('photoURL' in data) || (data.photoURL is string && data.photoURL.size() <= 1024)) &&
+        data.createdAt is string && data.createdAt.size() <= 64 &&
+        (!('updatedAt' in data) || (data.updatedAt is string && data.updatedAt.size() <= 64));
+    }
+
+    function isValidAudioProfile(data, userId) {
+      return data.keys().hasAll(['id', 'userId', 'name', 'bands', 'createdAt']) &&
+        data.keys().hasOnly(['id', 'userId', 'name', 'description', 'bands', 'preamp', 'delayEnabled', 'delayTime', 'delayFeedback', 'delayMix', 'isGameBooster', 'createdAt', 'updatedAt']) &&
+        data.userId == userId &&
+        data.userId == request.auth.uid &&
+        data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
+        (!('description' in data) || (data.description is string && data.description.size() <= 500)) &&
+        data.bands is list && data.bands.size() == 10 &&
+        (!('preamp' in data) || data.preamp is number) &&
+        (!('delayEnabled' in data) || data.delayEnabled is bool) &&
+        (!('delayTime' in data) || data.delayTime is number) &&
+        (!('delayFeedback' in data) || data.delayFeedback is number) &&
+        (!('delayMix' in data) || data.delayMix is number) &&
+        (!('isGameBooster' in data) || data.isGameBooster is bool) &&
+        data.createdAt is string && data.createdAt.size() <= 64 &&
+        (!('updatedAt' in data) || (data.updatedAt is string && data.updatedAt.size() <= 64));
+    }
+
+    function isValidChatMessage(data, userId) {
+      return data.keys().hasAll(['id', 'userId', 'role', 'content', 'createdAt']) &&
+        data.keys().hasOnly(['id', 'userId', 'role', 'content', 'recommendedEq', 'createdAt']) &&
+        data.userId == userId &&
+        data.userId == request.auth.uid &&
+        data.role in ['user', 'assistant'] &&
+        data.content is string && data.content.size() <= 8192 &&
+        (!('recommendedEq' in data) || (data.recommendedEq is list && data.recommendedEq.size() <= 10)) &&
+        data.createdAt is string && data.createdAt.size() <= 64;
+    }
+
+    function isValidAnalysisRecord(data, userId) {
+      return data.keys().hasAll(['id', 'userId', 'query', 'title', 'bands', 'createdAt']) &&
+        data.keys().hasOnly(['id', 'userId', 'query', 'title', 'summary', 'bands', 'preamp', 'delayEnabled', 'delayTime', 'delayFeedback', 'delayMix', 'isGameBooster', 'createdAt']) &&
+        data.userId == userId &&
+        data.userId == request.auth.uid &&
+        data.query is string && data.query.size() <= 256 &&
+        data.title is string && data.title.size() <= 128 &&
+        (!('summary' in data) || (data.summary is string && data.summary.size() <= 2048)) &&
+        data.bands is list && data.bands.size() == 10 &&
+        (!('preamp' in data) || data.preamp is number) &&
+        (!('delayEnabled' in data) || data.delayEnabled is bool) &&
+        (!('delayTime' in data) || data.delayTime is number) &&
+        (!('delayFeedback' in data) || data.delayFeedback is number) &&
+        (!('delayMix' in data) || data.delayMix is number) &&
+        (!('isGameBooster' in data) || data.isGameBooster is bool) &&
+        data.createdAt is string && data.createdAt.size() <= 64;
+    }
+
+    match /users/{userId} {
+      allow get: if isValidId(userId) && isOwner(userId);
+      allow create: if isValidId(userId) && isOwner(userId) && isValidUserProfile(incoming(), userId);
+      allow update: if isValidId(userId) && isOwner(userId) && isValidUserProfile(incoming(), userId) &&
+                    incoming().id == existing().id && incoming().createdAt == existing().createdAt;
+      allow delete: if isValidId(userId) && isOwner(userId);
+
+      match /profiles/{profileId} {
+        allow get, list: if isValidId(userId) && isOwner(userId);
+        allow create: if isValidId(userId) && isValidId(profileId) && isOwner(userId) && isValidAudioProfile(incoming(), userId);
+        allow update: if isValidId(userId) && isValidId(profileId) && isOwner(userId) && isValidAudioProfile(incoming(), userId) &&
+                      incoming().id == existing().id && incoming().userId == existing().userId && incoming().createdAt == existing().createdAt;
+        allow delete: if isValidId(userId) && isValidId(profileId) && isOwner(userId);
+      }
+
+      match /chat_messages/{messageId} {
+        allow get, list: if isValidId(userId) && isOwner(userId);
+        allow create: if isValidId(userId) && isValidId(messageId) && isOwner(userId) && isValidChatMessage(incoming(), userId);
+        allow delete: if isValidId(userId) && isValidId(messageId) && isOwner(userId);
+      }
+
+      match /analysis_history/{analysisId} {
+        allow get, list: if isValidId(userId) && isOwner(userId);
+        allow create: if isValidId(userId) && isValidId(analysisId) && isOwner(userId) && isValidAnalysisRecord(incoming(), userId);
+        allow delete: if isValidId(userId) && isValidId(analysisId) && isOwner(userId);
+      }
+    }
+  }
+}

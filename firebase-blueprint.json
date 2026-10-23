@@ -1,0 +1,223 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User account profile document storing user identity details",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "The unique Firebase Auth user ID",
+          "maxLength": 128
+        },
+        "email": {
+          "type": "string",
+          "description": "The user email address",
+          "maxLength": 256
+        },
+        "displayName": {
+          "type": "string",
+          "description": "User display name",
+          "maxLength": 128
+        },
+        "photoURL": {
+          "type": "string",
+          "description": "Avatar photo URL",
+          "maxLength": 1024
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "ISO timestamp of account creation"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "ISO timestamp of last update"
+        }
+      },
+      "required": ["id", "email", "createdAt"]
+    },
+    "AudioProfile": {
+      "title": "AudioProfile",
+      "description": "Custom 10-band equalizer and delay settings profile created by user",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Profile identifier",
+          "maxLength": 128
+        },
+        "userId": {
+          "type": "string",
+          "description": "Owner user UID",
+          "maxLength": 128
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the audio profile",
+          "maxLength": 100
+        },
+        "description": {
+          "type": "string",
+          "description": "Profile description or genre tags",
+          "maxLength": 500
+        },
+        "bands": {
+          "type": "array",
+          "description": "10-band gain values in dB from -12 to +12 for 32Hz, 64Hz, 125Hz, 250Hz, 500Hz, 1kHz, 2kHz, 4kHz, 8kHz, 16kHz"
+        },
+        "preamp": {
+          "type": "number",
+          "description": "Pre-amplification gain in dB"
+        },
+        "delayEnabled": {
+          "type": "boolean",
+          "description": "Whether delay effect is activated"
+        },
+        "delayTime": {
+          "type": "number",
+          "description": "Delay time in seconds"
+        },
+        "delayFeedback": {
+          "type": "number",
+          "description": "Delay feedback intensity from 0 to 0.95"
+        },
+        "delayMix": {
+          "type": "number",
+          "description": "Delay wet/dry mix from 0 to 1"
+        },
+        "isGameBooster": {
+          "type": "boolean",
+          "description": "Whether profile was tuned by Game Booster"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Creation timestamp"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Update timestamp"
+        }
+      },
+      "required": ["id", "userId", "name", "bands", "createdAt"]
+    },
+    "ChatMessage": {
+      "title": "ChatMessage",
+      "description": "Multi-turn Gemini AI assistant chat history message",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Message identifier",
+          "maxLength": 128
+        },
+        "userId": {
+          "type": "string",
+          "description": "User UID who owns the chat session",
+          "maxLength": 128
+        },
+        "role": {
+          "type": "string",
+          "description": "Message author: user or assistant",
+          "enum": ["user", "assistant"]
+        },
+        "content": {
+          "type": "string",
+          "description": "Text message content",
+          "maxLength": 8192
+        },
+        "recommendedEq": {
+          "type": "array",
+          "description": "Optional recommended 10-band EQ array [b0, ..., b9]"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Creation timestamp"
+        }
+      },
+      "required": ["id", "userId", "role", "content", "createdAt"]
+    },
+    "AudioAnalysisRecord": {
+      "title": "AudioAnalysisRecord",
+      "description": "Record of Gemini acoustic analysis and recommended 10-band EQ curve for comparison",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Analysis record identifier",
+          "maxLength": 128
+        },
+        "userId": {
+          "type": "string",
+          "description": "Owner user UID",
+          "maxLength": 128
+        },
+        "query": {
+          "type": "string",
+          "description": "Song, artist or acoustic query analyzed",
+          "maxLength": 256
+        },
+        "title": {
+          "type": "string",
+          "description": "Title of the recommendation or preset name",
+          "maxLength": 128
+        },
+        "summary": {
+          "type": "string",
+          "description": "Acoustic reasoning and mastering explanation from Gemini",
+          "maxLength": 2048
+        },
+        "bands": {
+          "type": "array",
+          "description": "10-band EQ recommendation in dB [-12 to +12]"
+        },
+        "preamp": {
+          "type": "number",
+          "description": "Recommended preamp level"
+        },
+        "delayEnabled": {
+          "type": "boolean",
+          "description": "Whether delay was recommended"
+        },
+        "delayTime": {
+          "type": "number",
+          "description": "Delay time in seconds"
+        },
+        "delayFeedback": {
+          "type": "number",
+          "description": "Delay feedback 0 to 0.9"
+        },
+        "delayMix": {
+          "type": "number",
+          "description": "Delay wet mix 0 to 1"
+        },
+        "isGameBooster": {
+          "type": "boolean",
+          "description": "Whether recommendation was Game Booster triggered"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Creation timestamp"
+        }
+      },
+      "required": ["id", "userId", "query", "title", "bands", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "User document containing account info"
+    },
+    "/users/{userId}/profiles/{profileId}": {
+      "schema": "AudioProfile",
+      "description": "Custom equalizer profiles for this user"
+    },
+    "/users/{userId}/chat_messages/{messageId}": {
+      "schema": "ChatMessage",
+      "description": "Saved chat conversation history messages with Gemini acoustic AI"
+    },
+    "/users/{userId}/analysis_history/{analysisId}": {
+      "schema": "AudioAnalysisRecord",
+      "description": "Scrollable history of Gemini audio analyses for EQ comparison"
+    }
+  }
+}
